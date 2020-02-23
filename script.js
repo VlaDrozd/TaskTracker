@@ -204,7 +204,6 @@ window.onload = () => {
 
 window.onbeforeunload = () => {
   localStorage.setObject(controller);
-  localStorage.clear();
 }
 
 Storage.prototype.isObject = function (){
