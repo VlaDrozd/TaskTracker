@@ -4,12 +4,14 @@ class Task {
   priority = '';
   isComleted = false;
 
-  constructor(title, text, priority, number) {
+  constructor(title, text, priority, color, number) {
     this.title = title;
     this.text = text;
     this.priority = priority;
     this.number = number;
+    this.color = color;
     this.node = document.createElement('li');
+    this.node.style.backgroundColor = color;
     this.time = new Date();
     this.node.classList.add('list-group-item');
     this.node.classList.add('d-flex');
@@ -63,17 +65,25 @@ class Task {
     this.node.innerHTML = `
     <div class="w-100 mr-2">
         <div class="d-flex w-100 justify-content-between">
-            <input id="editTitle" placeholder="Title" class="mb-1">
+            <input id="editTitle" placeholder="Title" class="mb-1" vlaue="${this.title}">
             <div>
-                <select name="priority" size="3" id="editPriority">
+                Priority:
+                <select name="priority" id="editPriority" value="${this.value}">
                   <option value="Low" selected="selected">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </select>
+                Color:
+                <select name="color" id="editColor" value="${this.color}">
+                  <option selected value="">Default</option>
+                  <option style="background-color: #6DF06D" value="#6DF06D">Green</option>
+                  <option style="background-color: #FBC969" value="#FBC969">Orange</option>
+                  <option style="background-color: #E35B43" value="#E35B43">Red</option>
+                </select>
                 <small>${getTime(this.time)}</small>
             </div>
         </div>
-        <input id="editText" placeholder="Text" class="mb-1 w-100">
+        <input id="editText" placeholder="Text" class="mb-1 w-100" vlaue="${this.text}">
     </div>
     <div class="dropdown m-2 dropleft">
         <button class="btn btn-secondary h-100" type="button" id="dropdownMenuItem1"
@@ -93,8 +103,8 @@ class TaskController {
 
   editingTask = null;
 
-  addTask(title, text, priotity) {
-    this.ToDoList.push(new Task(title, text, priotity, this.ToDoList.length));
+  addTask(title, text, color, priotity) {
+    this.ToDoList.push(new Task(title, text, priotity, color,this.ToDoList.length));
     this.updateLists();
   }
 
@@ -120,6 +130,8 @@ class TaskController {
     this.editingTask.title = editTitle.value;
     this.editingTask.text = editText.value;
     this.editingTask.priority = editPriority.value;
+    this.editingTask.color = editColor.value;
+    this.editingTask.node.style.backgroundColor = editColor.value;
     this.editingTask = null;
     this.updateLists();
   }
@@ -140,6 +152,26 @@ class TaskController {
       completedTasks.appendChild(li.node);
     });
   }
+
+  setSortType(type) {
+    if(type === 'startOld') {
+      this.ToDoList.sort((a, b) => {
+        return a.time - b.time;
+      });
+      this.CompliteLIst.sort((a, b) => {
+        return a.time - b.time;
+      });
+    }
+    else if (type === 'startNew') {
+      this.ToDoList.sort((a, b) => {
+        return -(a.time - b.time);
+      });
+      this.CompliteLIst.sort((a, b) => {
+        return -(a.time - b.time);
+      });
+    }
+    this.updateLists();
+  }
 }
 
 window.onload = () => {
@@ -147,7 +179,7 @@ window.onload = () => {
   controller.updateLists();
   addTaskForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    controller.addTask(inputTitle.value, inputText.value, getPriority());
+    controller.addTask(inputTitle.value, inputText.value, inputColor.value, getPriority());
 
     function getPriority() {
       if (Low.checked) {
@@ -170,6 +202,7 @@ window.onload = () => {
 
 window.onbeforeunload = () => {
   localStorage.setObject(controller);
+  localStorage.clear();
 }
 
 Storage.prototype.isObject = function (){
@@ -178,23 +211,25 @@ Storage.prototype.isObject = function (){
 
 Storage.prototype.setObject = function (value) {
   let ToDo = value.ToDoList.map((el) => {
-    let {title, text, priority, time, number} = el;
+    let {title, text, priority, time, number, color} = el;
     return {
       title,
       text,
       priority,
       time,
       number,
+      color
     }
   });
   let Complete = value.CompliteLIst.map((el) => {
-    let {title, text, priority, time, number} = el;
+    let {title, text, priority, time, number, color} = el;
     return {
       title,
       text,
       priority,
       time,
       number,
+      color
     }
   });
   this.setItem('ToDo', JSON.stringify(ToDo));
@@ -206,12 +241,12 @@ Storage.prototype.getObject = function () {
   let Complete = JSON.parse(this.getItem('Complete'));
   let value = new TaskController();
   value.ToDoList = ToDo.map((el) => {
-    let task = new Task(el.title, el.text, el.priority, el.number);
+    let task = new Task(el.title, el.text, el.priority, el.color, el.number);
     task.time = new Date(el.time);
     return task;
   });
   value.CompliteLIst = Complete.map((el) => {
-    let task = new Task(el.title, el.text, el.priority, el.number);
+    let task = new Task(el.title, el.text, el.priority, el.color, el.number);
     task.time = new Date(el.time);
     task.complite();
     return task;
@@ -224,4 +259,13 @@ function getTime(time) {
     return t < 10 ? '0'+t : t;
   }
   return `${time.getHours()}:${convert(time.getMinutes())} ${convert(time.getDate())}.${convert(time.getMonth() + 1)}.${time.getFullYear()}`;
+}
+
+function setColorTheme(type) {
+  if(type === 'light') {
+    styles.href = './light.min.css'
+  }
+  else if (type === 'dark') {
+    styles.href = './dark.min.css'
+  }
 }
