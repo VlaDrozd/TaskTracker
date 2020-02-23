@@ -151,6 +151,8 @@ class TaskController {
     this.CompliteLIst.forEach((li) => {
       completedTasks.appendChild(li.node);
     });
+    todoCount.innerText = this.ToDoList.length;
+    completeCount.innerText = this.CompliteLIst.length;
   }
 
   setSortType(type) {
